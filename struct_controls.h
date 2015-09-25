@@ -1,14 +1,43 @@
 #ifndef STRUCT_CONTROLS_H
 #define STRUCT_CONTROLS_H
 
+#include <vector>
+#include <QDataStream>
+
 #define FOREACH(index, cnt, expression) for(int index = 0; index < cnt; index++){ \
 	expression; \
 	}
 
+class ExceptionCustom{
+public:
+	enum{
+		UNKNOWN = 0
+	};
+	std::string message;
+	int code;
+
+	ExceptionCustom(std::string msg){
+		message = msg;
+		code = UNKNOWN;
+	}
+	ExceptionCustom(int code){
+		this->code = code;
+	}
+};
+
+#ifdef _DEBUG
+#define ASSERT_EC(val, msg)	if(!(val)) throw new ExceptionCustom(msg)
+#else
+#define ASSERT_EC(val, msg)
+#endif
+
 template< typename T >
 struct Vertex3_{
+	enum{
+		count = 3
+	};
 	Vertex3_(){
-		FOREACH(i, 3, data[i] = 0);
+		FOREACH(i, count, data[i] = 0);
 	}
 	Vertex3_(T x, T y, T z){
 		data[0] = x;
@@ -16,12 +45,12 @@ struct Vertex3_{
 		data[2] = z;
 	}
 	Vertex3_(const Vertex3_& v){
-		FOREACH(i, 3, data[i] = v.data[i];);
+		FOREACH(i, count, data[i] = v.data[i];);
 	}
 	template< typename P >
 	Vertex3_(const Vertex3_<P> &v)
 	{
-		FOREACH(i, 3, data[i] = static_cast< T > (v.data[i]));
+		FOREACH(i, count, data[i] = static_cast< T > (v.data[i]));
 	}
 
 	T x() const { return data[0]; }
@@ -32,23 +61,31 @@ struct Vertex3_{
 	void setZ(T value) { data[2] = value; }
 
 	Vertex3_& operator* (T value){
-		FOREACH(i, 3, data[i] *= value);
+		FOREACH(i, count, data[i] *= value);
 		return *this;
 	}
 	Vertex3_& operator*= (T value){
-		FOREACH(i, 3, data[i] *= value);
+		FOREACH(i, count, data[i] *= value);
 		return *this;
 	}
 	Vertex3_& operator+= (const Vertex3_& v){
-		FOREACH(i, 3, data[i] += v.data[i]);
+		FOREACH(i, count, data[i] += v.data[i]);
 		return *this;
 	}
 	Vertex3_& operator-= (const Vertex3_& v){
-		FOREACH(i, 3, data[i] -= v.data[i]);
+		FOREACH(i, count, data[i] -= v.data[i]);
 		return *this;
 	}
+	T& operator[] (int index){
+		ASSERT_EC(index >=0 && index < count, "index out of range");
+		return data[index];
+	}
+	T& operator[] (int index) const{
+		ASSERT_EC(index >=0 && index < count, "index out of range");
+		return data[index];
+	}
 
-	T data[3];
+	T data[count];
 };
 
 typedef Vertex3_< float > Vertex3f;
@@ -64,9 +101,13 @@ struct StructControls
 };
 
 const int cnt_engines = 4;
+const int raw_count = 46;
 
 struct StructTelemetry
 {
+	/**
+	 * @brief StructTelemetry
+	 */
 	StructTelemetry(){
 		FOREACH(i, cnt_engines, power[i] = 0;);
 		power_on = false;
@@ -74,6 +115,10 @@ struct StructTelemetry
 		temp = 0;
 		course = tangaj = bank = 0;
 	}
+	/**
+	 * @brief StructTelemetry
+	 * @param st
+	 */
 	StructTelemetry(const StructTelemetry& st){
 		power_on = st.power_on;
 		FOREACH(i, cnt_engines, power[i] = st.power[i];);
@@ -84,6 +129,55 @@ struct StructTelemetry
 		accel = st.accel;
 		height = st.height;
 		temp = st.temp;
+		afs_sel = st.afs_sel;
+		fs_sel = st.fs_sel;
+		std::copy(st.raw, st.raw + raw_count, raw);
+	}
+	/**
+	 * @brief write_to
+	 * serialize to byte array
+	 * @param stream
+	 */
+	void write_to(QDataStream& stream){
+		stream.setByteOrder(QDataStream::BigEndian);
+		stream.setFloatingPointPrecision(QDataStream::SinglePrecision);
+		stream.setVersion(QDataStream::Qt_4_8);
+
+		stream << power_on;
+		FOREACH(i, cnt_engines, stream << power[i]);
+		stream << tangaj;
+		stream << bank;
+		stream << course;
+		stream << temp;
+		stream << height;
+		FOREACH(i, Vertex3i::count, stream << gyro[i]);
+		FOREACH(i, Vertex3i::count, stream << accel[i]);
+		stream << afs_sel;
+		stream << fs_sel;
+		stream.writeRawData(reinterpret_cast< char* >(raw), raw_count);
+	}
+	/**
+	 * @brief read_from
+	 * deserialize byte array
+	 * @param stream
+	 */
+	void read_from(QDataStream& stream){
+		stream.setByteOrder(QDataStream::BigEndian);
+		stream.setFloatingPointPrecision(QDataStream::SinglePrecision);
+		stream.setVersion(QDataStream::Qt_4_8);
+
+		stream >> power_on;
+		FOREACH(i, cnt_engines, stream >> power[i]);
+		stream >> tangaj;
+		stream >> bank;
+		stream >> course;
+		stream >> temp;
+		stream >> height;
+		FOREACH(i, Vertex3i::count, stream >> gyro[i]);
+		FOREACH(i, Vertex3i::count, stream >> accel[i]);
+		stream >> afs_sel;
+		stream >> fs_sel;
+		stream.readRawData(reinterpret_cast< char* >(raw), raw_count);
 	}
 
 	bool power_on;
@@ -99,6 +193,10 @@ struct StructTelemetry
 	Vertex3i gyro;
 
 	Vertex3i accel;
+
+	unsigned char afs_sel;				/// value of accelerometer mode
+	unsigned char fs_sel;				/// value of gyroscope mode
+	unsigned char raw[raw_count];		/// raw data from 0x0d to 0x3a address from mpu6050
 };
 
 #endif // STRUCT_CONTROLS_H
