@@ -4,6 +4,8 @@
 #include <vector>
 #include <QDataStream>
 
+/// \brief FOREACH - cycle for the expression at
+/// the specified index and the number of repetitions
 #define FOREACH(index, cnt, expression) for(int index = 0; index < cnt; index++){ \
 	expression; \
 	}
@@ -114,6 +116,9 @@ struct StructTelemetry
 		height = 0;
 		temp = 0;
 		course = tangaj = bank = 0;
+		fs_sel = 0;
+		afs_sel = 0;
+		FOREACH(i, raw_count, raw[i] = 0);
 	}
 	/**
 	 * @brief StructTelemetry
@@ -178,6 +183,28 @@ struct StructTelemetry
 		stream >> afs_sel;
 		stream >> fs_sel;
 		stream.readRawData(reinterpret_cast< char* >(raw), raw_count);
+	}
+
+	Vertex3f angular_speed(){
+		float factor = 1.0;
+		switch (fs_sel) {
+			case 0:
+			default:
+				factor = 250.0f / 32768.0f;
+				break;
+			case 1:
+				factor = 500.0f / 32768.0f;
+				break;
+			case 2:
+				factor = 1000.0f / 32768.0f;
+				break;
+			case 3:
+				factor = 2000.0f / 32768.0f;
+				break;
+		}
+		Vertex3f res = Vertex3f(gyro);
+		res *= factor;
+		return res;
 	}
 
 	bool power_on;
