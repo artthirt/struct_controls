@@ -260,7 +260,7 @@ struct StructTelemetry
 		if(!freq)
 			freq = default_freq;
 
-		res *= factor * 1.0/freq;
+		res *= factor;
 		return res;
 	}
 
