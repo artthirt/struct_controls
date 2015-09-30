@@ -34,6 +34,8 @@ public:
 #define ASSERT_EC(val, msg)
 #endif
 
+const double epsilon = 1e-9;
+
 template< typename T >
 struct Vertex3_{
 	enum{
@@ -63,20 +65,13 @@ struct Vertex3_{
 	inline void setY(T value) { data[1] = value; }
 	inline void setZ(T value) { data[2] = value; }
 
-	inline Vertex3_& operator* (T value){
-		FOREACH(i, count, data[i] *= value);
-		return *this;
+	inline bool isNull() const{
+		T res = 0;
+		FOREACH(i, count, res += data[i] * data[i]);
+		return res < epsilon;
 	}
 	inline Vertex3_& operator*= (T value){
 		FOREACH(i, count, data[i] *= value);
-		return *this;
-	}
-	inline Vertex3_& operator+ (const Vertex3_& v2){
-		FOREACH(i, count, data[i] += v2.data[i]);
-		return *this;
-	}
-	inline Vertex3_& operator- (const Vertex3_& v2){
-		FOREACH(i, count, data[i] -= v2.data[i]);
 		return *this;
 	}
 	inline Vertex3_& operator+= (const Vertex3_& v){
@@ -135,6 +130,46 @@ struct Vertex3_{
 
 	T data[count];
 };
+
+
+/**
+ * @brief operator +
+ * @param v1
+ * @param v2
+ * @return
+ */
+template< typename T >
+static inline Vertex3_< T > operator+ (const Vertex3_< T >& v1, const Vertex3_< T >& v2){
+	Vertex3_< T > res;
+	FOREACH(i, Vertex3_< T >::count, res.data[i] = v1.data[i] + v2.data[i]);
+	return res;
+}
+
+/**
+ * @brief operator -
+ * @param v1
+ * @param v2
+ * @return
+ */
+template< typename T >
+static inline Vertex3_< T > operator- (const Vertex3_< T >& v1, const Vertex3_< T >& v2){
+	Vertex3_< T > res;
+	FOREACH(i, Vertex3_< T >::count, res.data[i] = v1.data[i] - v2.data[i]);
+	return res;
+}
+
+/**
+ * @brief operator *
+ * @param v
+ * @param d
+ * @return
+ */
+template< typename T >
+static inline Vertex3_< T > operator* (const Vertex3_< T >& v, T d){
+	Vertex3_< T > res;
+	FOREACH(i, Vertex3_< T >::count, res.data[i] = v.data[i] * d);
+	return res;
+}
 
 typedef Vertex3_< float > Vertex3f;
 typedef Vertex3_< double > Vertex3d;
