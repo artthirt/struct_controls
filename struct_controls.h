@@ -167,6 +167,7 @@ struct StructTelemetry
 		fs_sel = 0;
 		afs_sel = 0;
 		freq = default_freq;
+		tick = 0;
 		FOREACH(i, raw_count, raw[i] = 0);
 	}
 	/**
@@ -186,6 +187,7 @@ struct StructTelemetry
 		afs_sel = st.afs_sel;
 		fs_sel = st.fs_sel;
 		freq = st.freq;
+		tick = st.tick;
 		std::copy(st.raw, st.raw + raw_count, raw);
 	}
 	/**
@@ -210,6 +212,7 @@ struct StructTelemetry
 		stream << afs_sel;
 		stream << fs_sel;
 		stream << freq;
+		stream << tick;
 		stream.writeRawData(reinterpret_cast< char* >(raw), raw_count);
 	}
 	/**
@@ -234,6 +237,7 @@ struct StructTelemetry
 		stream >> afs_sel;
 		stream >> fs_sel;
 		stream >> freq;
+		stream >> tick;
 		stream.readRawData(reinterpret_cast< char* >(raw), raw_count);
 	}
 
@@ -273,8 +277,6 @@ struct StructTelemetry
 	float course;
 	float temp;
 	float height;
-	float freq;							/// It is used to define part of the data
-										/// from the sensors to a single point in time
 
 	Vertex3i gyro;
 
@@ -282,6 +284,9 @@ struct StructTelemetry
 
 	unsigned char afs_sel;				/// value of accelerometer mode
 	unsigned char fs_sel;				/// value of gyroscope mode
+	float freq;							/// It is used to define part of the data
+										/// from the sensors to a single point in time
+	long long tick;
 	unsigned char raw[raw_count];		/// raw data from 0x0d to 0x3a address from mpu6050
 };
 
