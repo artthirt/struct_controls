@@ -11,6 +11,17 @@
 	expression; \
 	}
 
+///////////////////////////////////////////////
+
+class Quaternion;
+
+static inline Quaternion operator- (const Quaternion& q1, const Quaternion q2);
+static inline Quaternion operator+ (const Quaternion& q1, const Quaternion q2);
+static inline Quaternion operator* (const Quaternion& q1, const Quaternion q2);
+
+///////////////////////////////////////////////
+/// \brief The ExceptionCustom class
+/// simple class for exception
 class ExceptionCustom{
 public:
 	enum{
@@ -36,24 +47,26 @@ public:
 
 const double epsilon = 1e-9;
 
+////////////////////////////////////////////////////
+
 template< typename T >
-struct Vertex3_{
+struct Vector3_{
 	enum{
 		count = 3
 	};
-	Vertex3_(){
+	Vector3_(){
 		FOREACH(i, count, data[i] = 0);
 	}
-	Vertex3_(T x, T y, T z){
+	Vector3_(T x, T y, T z){
 		data[0] = x;
 		data[1] = y;
 		data[2] = z;
 	}
-	Vertex3_(const Vertex3_& v){
+	Vector3_(const Vector3_& v){
 		FOREACH(i, count, data[i] = v.data[i];);
 	}
 	template< typename P >
-	Vertex3_(const Vertex3_<P> &v)
+	Vector3_(const Vector3_<P> &v)
 	{
 		FOREACH(i, count, data[i] = static_cast< T > (v.data[i]));
 	}
@@ -70,15 +83,15 @@ struct Vertex3_{
 		FOREACH(i, count, res += data[i] * data[i]);
 		return res < epsilon;
 	}
-	inline Vertex3_& operator*= (T value){
+	inline Vector3_& operator*= (T value){
 		FOREACH(i, count, data[i] *= value);
 		return *this;
 	}
-	inline Vertex3_& operator+= (const Vertex3_& v){
+	inline Vector3_& operator+= (const Vector3_& v){
 		FOREACH(i, count, data[i] += v.data[i]);
 		return *this;
 	}
-	inline Vertex3_& operator-= (const Vertex3_& v){
+	inline Vector3_& operator-= (const Vector3_& v){
 		FOREACH(i, count, data[i] -= v.data[i]);
 		return *this;
 	}
@@ -100,7 +113,7 @@ struct Vertex3_{
 		FOREACH(i, count, res += data[i] * data[i]);
 		return res;
 	}
-	inline Vertex3_ normalize(){
+	inline Vector3_ normalize(){
 		double res = length();
 		double rabs = fabs(res);
 		if(rabs < 1e-7)
@@ -109,19 +122,22 @@ struct Vertex3_{
 		FOREACH(i, count, data[i] *= res);
 		return *this;
 	}
-	inline Vertex3_ normalized(){
-		Vertex3_ res(*this);
+	inline Vector3_ normalized() const{
+		Vector3_ res(*this);
 		res.normalize();
 		return res;
 	}
+	inline Vector3_ inv() const{
+		return Vector3_(-x(), -y(), -z());
+	}
 
-	static double dot(const Vertex3_& v1, const Vertex3_& v2){
+	static double dot(const Vector3_& v1, const Vector3_& v2){
 		double res = 0;
 		FOREACH(i, count, res += v1.data[i] * v2.data[i]);
 		return res;
 	}
-	static Vertex3_ cross(const Vertex3_& v1, const Vertex3_& v2){
-		Vertex3_ res;
+	static Vector3_ cross(const Vector3_& v1, const Vector3_& v2){
+		Vector3_ res;
 		res.setX(v1.y() * v2.z() - v1.z() * v2.y());
 		res.setY(v1.z() * v2.x() - v1.x() * v2.z());
 		res.setZ(v1.x() * v2.y() - v1.y() * v2.x());
@@ -139,9 +155,9 @@ struct Vertex3_{
  * @return
  */
 template< typename T >
-static inline Vertex3_< T > operator+ (const Vertex3_< T >& v1, const Vertex3_< T >& v2){
-	Vertex3_< T > res;
-	FOREACH(i, Vertex3_< T >::count, res.data[i] = v1.data[i] + v2.data[i]);
+static inline Vector3_< T > operator+ (const Vector3_< T >& v1, const Vector3_< T >& v2){
+	Vector3_< T > res;
+	FOREACH(i, Vector3_< T >::count, res.data[i] = v1.data[i] + v2.data[i]);
 	return res;
 }
 
@@ -152,28 +168,174 @@ static inline Vertex3_< T > operator+ (const Vertex3_< T >& v1, const Vertex3_< 
  * @return
  */
 template< typename T >
-static inline Vertex3_< T > operator- (const Vertex3_< T >& v1, const Vertex3_< T >& v2){
-	Vertex3_< T > res;
-	FOREACH(i, Vertex3_< T >::count, res.data[i] = v1.data[i] - v2.data[i]);
+static inline Vector3_< T > operator- (const Vector3_< T >& v1, const Vector3_< T >& v2){
+	Vector3_< T > res;
+	FOREACH(i, Vector3_< T >::count, res.data[i] = v1.data[i] - v2.data[i]);
 	return res;
 }
 
 /**
  * @brief operator *
+ * multiple vector to single value
  * @param v
  * @param d
  * @return
  */
 template< typename T >
-static inline Vertex3_< T > operator* (const Vertex3_< T >& v, T d){
-	Vertex3_< T > res;
-	FOREACH(i, Vertex3_< T >::count, res.data[i] = v.data[i] * d);
+static inline Vector3_< T > operator* (const Vector3_< T >& v, T d){
+	Vector3_< T > res;
+	FOREACH(i, Vector3_< T >::count, res.data[i] = v.data[i] * d);
 	return res;
 }
 
-typedef Vertex3_< float > Vertex3f;
-typedef Vertex3_< double > Vertex3d;
-typedef Vertex3_< int > Vertex3i;
+typedef Vector3_< float > Vector3f;
+typedef Vector3_< double > Vector3d;
+typedef Vector3_< int > Vector3i;
+
+//////////////////////////////////////////////////
+
+/**
+ * @brief isNull
+ * compare value for null
+ * @param value
+ * @return
+ */
+static inline bool isNull(double value)
+{
+	return fabs(value) < epsilon;
+}
+
+/**
+ * @brief angle2rad
+ * convert angle to radian
+ * @param angle
+ * @return
+ */
+static inline double angle2rad(double angle)
+{
+	return angle * M_PI / 180.0;
+}
+
+/**
+ * @brief rad2angle
+ * convert radian to angle
+ * @param rad
+ * @return
+ */
+static inline double rad2angle(double rad)
+{
+	return rad * 180.0 / M_PI;
+}
+
+//////////////////////////////////////////////////
+/// \brief The Quaternion struct
+/// simple class for quaternion
+struct Quaternion{
+	Vector3d v;
+	double w;
+
+	Quaternion(){
+		w = 1;
+	}
+	Quaternion(const Quaternion& q){
+		v = q.v;
+		w = q.w;
+	}
+	Quaternion(double x, double y, double z, double r){
+		v = Vector3d(x, y, z);
+		w = r;
+	}
+	Quaternion(const Vector3d& vector, double r){
+		w = r;
+		v = vector;
+	}
+	inline double x(){
+		return v.x();
+	}
+	inline double y(){
+		return v.y();
+	}
+	inline double z(){
+		return v.z();
+	}
+	Quaternion conj() const{
+		return Quaternion(v.inv(), w);
+	}
+	void normalize(){
+		double len = v.x() * v.x() + v.y() * v.y() +
+				v.z() * v.z() + w * w;
+		if(isNull(len) || isNull(len - 1.0f));
+		return;
+
+		len = 1.0/sqrt(len);
+		v *= len;
+		w *= len;
+	}
+	Quaternion normalized() const{
+		Quaternion res(*this);
+		res.normalize();
+		return res;
+	}
+	Vector3d rotatedVector(const Vector3d& val) const{
+		Quaternion res = *this * Quaternion(val, 0) * conj();
+		return res.v;
+	}
+	Quaternion& operator= (const Quaternion& q){
+		v = q.v;
+		w = q.w;
+	}
+
+	static Quaternion fromAxisAngle(double x, double y, double z, double angle){
+		Quaternion q;
+		double a = angle2rad(angle/2.0);
+		q.w = cos(a);
+		double s = sin(a);
+		q.v = Vector3d(x, y, z).normalized();
+		q.v *= s;
+		return q;
+	}
+	static Quaternion fromAxisAngle(const Vector3d& axis, double angle){
+		Quaternion q;
+		double a = angle2rad(angle/2.0);
+		q.w = cos(a);
+		double s = sin(a);
+		q.v = axis.normalized();
+		q.v *= s;
+		return q;
+	}
+};
+
+//////////////////////////////////////////////////
+
+static inline Quaternion operator* (const Quaternion& q1, const Quaternion q2)
+{
+/*
+ *	{
+ *		result.w:=q1.w*q2.w-DotProduct(q1.v,q2.v);
+ *		result.v:=AddVertex(AddVertex(MULUVertex(q1.w,q2.v),MULUVertex(q2.w,q1.v)),MultVertex(q1.v,q2.v));
+ *	}
+*/
+	Quaternion res;
+	res.w = q1.w * q2.w - Vector3d::dot(q1.v, q2.v);
+	Vector3d v1 = q1.v * q2.w;
+	Vector3d v2 = q2.v * q1.w;
+	Vector3d v3 = Vector3d::cross(q1.v, q2.v);
+	res.v = v1 + v2 + v3;
+
+	return res;
+}
+
+static inline Quaternion operator+ (const Quaternion& q1, const Quaternion q2)
+{
+	return Quaternion(q1.v + q2.v, q1.w + q2.w);
+}
+
+static inline Quaternion operator- (const Quaternion& q1, const Quaternion q2)
+{
+	return Quaternion(q1.v - q2.v, q1.w - q2.w);
+}
+
+//////////////////////////////////////////////////
 
 struct StructControls
 {
@@ -188,6 +350,10 @@ const int cnt_engines = 4;
 const int raw_count = 46;
 const float default_freq = 100;
 
+/**
+ * @brief The StructTelemetry struct
+ * the structure for work with mpu6050 with raspberry pi 2 in the project "example_rpi2"
+ */
 struct StructTelemetry
 {
 	/**
@@ -242,8 +408,8 @@ struct StructTelemetry
 		stream << course;
 		stream << temp;
 		stream << height;
-		FOREACH(i, Vertex3i::count, stream << gyro[i]);
-		FOREACH(i, Vertex3i::count, stream << accel[i]);
+		FOREACH(i, Vector3i::count, stream << gyro[i]);
+		FOREACH(i, Vector3i::count, stream << accel[i]);
 		stream << afs_sel;
 		stream << fs_sel;
 		stream << freq;
@@ -267,8 +433,8 @@ struct StructTelemetry
 		stream >> course;
 		stream >> temp;
 		stream >> height;
-		FOREACH(i, Vertex3i::count, stream >> gyro[i]);
-		FOREACH(i, Vertex3i::count, stream >> accel[i]);
+		FOREACH(i, Vector3i::count, stream >> gyro[i]);
+		FOREACH(i, Vector3i::count, stream >> accel[i]);
 		stream >> afs_sel;
 		stream >> fs_sel;
 		stream >> freq;
@@ -276,9 +442,16 @@ struct StructTelemetry
 		stream.readRawData(reinterpret_cast< char* >(raw), raw_count);
 	}
 
-	Vertex3d angular_speed(const Vertex3d& offset = Vertex3d()){
+	/**
+	 * @brief angular_speed
+	 * get angular speed from gyroscope mpu6050
+	 * uses fs_sel for get factor to get the real angles
+	 * @param offset
+	 * @return
+	 */
+	Vector3d angular_speed(const Vector3d& offset = Vector3d()){
 		float factor = 1.0;
-		Vertex3d g = gyro;
+		Vector3d g = gyro;
 		g -= offset;
 		switch (fs_sel) {
 			case 0:
@@ -295,7 +468,7 @@ struct StructTelemetry
 				factor = 2000.0f / 32768.0f;
 				break;
 		}
-		Vertex3d res = Vertex3d(g);
+		Vector3d res = Vector3d(g);
 		if(!freq)
 			freq = default_freq;
 
@@ -313,9 +486,9 @@ struct StructTelemetry
 	float temp;
 	float height;
 
-	Vertex3i gyro;
+	Vector3i gyro;
 
-	Vertex3i accel;
+	Vector3i accel;
 
 	unsigned char afs_sel;				/// value of accelerometer mode
 	unsigned char fs_sel;				/// value of gyroscope mode
