@@ -4,6 +4,9 @@
 #include <vector>
 #include <math.h>
 #include <QDataStream>
+#include <QDebug>
+
+namespace sc{
 
 /// \brief FOREACH - cycle for the expression at
 /// the specified index and the number of repetitions
@@ -18,6 +21,7 @@ class Quaternion;
 static inline Quaternion operator- (const Quaternion& q1, const Quaternion q2);
 static inline Quaternion operator+ (const Quaternion& q1, const Quaternion q2);
 static inline Quaternion operator* (const Quaternion& q1, const Quaternion q2);
+static inline Quaternion operator* (const Quaternion& q1, double t);
 
 ///////////////////////////////////////////////
 /// \brief The ExceptionCustom class
@@ -249,14 +253,24 @@ struct Quaternion{
 		w = r;
 		v = vector;
 	}
-	inline double x(){
+	inline double x() const{
 		return v.x();
 	}
-	inline double y(){
+	inline double y() const{
 		return v.y();
 	}
-	inline double z(){
+	inline double z() const{
 		return v.z();
+	}
+	inline double length() const{
+		double len = v.x() * v.x() + v.y() * v.y() +
+				v.z() * v.z() + w * w;
+		return sqrt(len);
+	}
+	inline double lengthSquared() const{
+		double len = v.x() * v.x() + v.y() * v.y() +
+				v.z() * v.z() + w * w;
+		return len;
 	}
 	Quaternion conj() const{
 		return Quaternion(v.inv(), w);
@@ -264,8 +278,8 @@ struct Quaternion{
 	void normalize(){
 		double len = v.x() * v.x() + v.y() * v.y() +
 				v.z() * v.z() + w * w;
-		if(isNull(len) || isNull(len - 1.0f));
-		return;
+		if(isNull(len) || isNull(len - 1.0))
+			return;
 
 		len = 1.0/sqrt(len);
 		v *= len;
@@ -283,25 +297,75 @@ struct Quaternion{
 	Quaternion& operator= (const Quaternion& q){
 		v = q.v;
 		w = q.w;
+		return *this;
+	}
+	Quaternion& operator *= (const Quaternion& q){
+		*this = *this * q;
+		return *this;
+	}
+	Quaternion& operator *= (double value){
+		w *= value;
+		v *= value;
+		return *this;
+	}
+	Quaternion& operator+= (const Quaternion& q){
+		w += q.w;
+		v += q.v;
+		return *this;
+	}
+	Quaternion& operator-= (const Quaternion& q){
+		w -= q.w;
+		v -= q.v;
+		return *this;
 	}
 
-	static Quaternion fromAxisAngle(double x, double y, double z, double angle){
+	static Quaternion fromAxisAndAngle(double x, double y, double z, double angle){
 		Quaternion q;
 		double a = angle2rad(angle/2.0);
 		q.w = cos(a);
 		double s = sin(a);
-		q.v = Vector3d(x, y, z).normalized();
-		q.v *= s;
+		q.v = Vector3d(x, y, z) * s;
+		q.normalize();
 		return q;
 	}
-	static Quaternion fromAxisAngle(const Vector3d& axis, double angle){
+	static Quaternion fromAxisAndAngle(const Vector3d& axis, double angle){
 		Quaternion q;
 		double a = angle2rad(angle/2.0);
 		q.w = cos(a);
 		double s = sin(a);
-		q.v = axis.normalized();
-		q.v *= s;
+		q.v = axis * s;
+		q.normalize();
 		return q;
+	}
+	static double dot(const Quaternion& q1, const Quaternion& q2){
+		double d = Vector3d::dot(q1.v, q2.v);
+		return d + q1.w * q2.w;
+	}
+	static Quaternion nlerp(const Quaternion& p0, const Quaternion& p1, double t){
+		if(t <= 0)
+			return p0;
+		if(t >= 1)
+			return p1;
+		Quaternion res = p0 * (1 - t) + p1 * t;
+		return res.normalized();
+	}
+	static Quaternion slerp(const Quaternion& p0, const Quaternion& p1, double t){
+		Quaternion res;
+		double theta = Quaternion::dot(p0, p1);
+		theta = acos(theta);
+
+		if(t <= 0)
+			return p0;
+		if(t >= 1)
+			return p1;
+		if(isNull(theta))
+			return p0;
+
+		double f1 = sin((1.0 - t) * theta);
+		double f2 = sin(t * theta);
+		double f3 = 1.0 / sin(theta);
+		res = p0 * (f1/f3) + p1 * (f2 / f3);
+		return res.normalized();
 	}
 };
 
@@ -309,20 +373,26 @@ struct Quaternion{
 
 static inline Quaternion operator* (const Quaternion& q1, const Quaternion q2)
 {
-/*
- *	{
- *		result.w:=q1.w*q2.w-DotProduct(q1.v,q2.v);
- *		result.v:=AddVertex(AddVertex(MULUVertex(q1.w,q2.v),MULUVertex(q2.w,q1.v)),MultVertex(q1.v,q2.v));
- *	}
-*/
+	// q1(a, b, c, d) q2(e, f, g, h)
+	// (ae-bf-cg-dh)+(af+be+ch-dg)i+(ag-bh+ce+df)j+(ah+bg-cf+de)k
+
 	Quaternion res;
-	res.w = q1.w * q2.w - Vector3d::dot(q1.v, q2.v);
-	Vector3d v1 = q1.v * q2.w;
-	Vector3d v2 = q2.v * q1.w;
-	Vector3d v3 = Vector3d::cross(q1.v, q2.v);
-	res.v = v1 + v2 + v3;
+	double vx, vy, vz;
+
+	res.w = q1.w * q2.w - q1.v.x() * q2.v.x() - q1.v.y() * q2.v.y() - q1.v.z() * q2.v.z();
+
+	vx = q1.w * q2.v.x() + q1.v.x() * q2.w + q1.v.y() * q2.v.z() - q1.v.z() * q2.v.y();
+	vy = q1.w * q2.v.y() - q1.v.x() * q2.v.z() + q1.v.y() * q2.w + q1.v.z() * q2.v.x();
+	vz = q1.w * q2.z() + q1.v.x() * q2.v.y() - q1.v.y() * q2.v.x() + q1.v.z() * q2.w;
+
+	res.v = Vector3d(vx, vy, vz);
 
 	return res;
+}
+
+static inline Quaternion operator* (const Quaternion& q1, double t)
+{
+	return Quaternion(q1.v * t, q1.w * t);
 }
 
 static inline Quaternion operator+ (const Quaternion& q1, const Quaternion q2)
@@ -333,6 +403,12 @@ static inline Quaternion operator+ (const Quaternion& q1, const Quaternion q2)
 static inline Quaternion operator- (const Quaternion& q1, const Quaternion q2)
 {
 	return Quaternion(q1.v - q2.v, q1.w - q2.w);
+}
+
+static inline QDebug operator<< (QDebug dbg, const Quaternion& q)
+{
+	dbg.nospace() << "(" << q.w << " [" << q.v.x() << ", " << q.v.y() << ", " << q.v.z() << "] )";
+	return dbg.space();
 }
 
 //////////////////////////////////////////////////
@@ -497,5 +573,7 @@ struct StructTelemetry
 	long long tick;
 	unsigned char raw[raw_count];		/// raw data from 0x0d to 0x3a address from mpu6050
 };
+
+}
 
 #endif // STRUCT_CONTROLS_H
