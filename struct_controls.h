@@ -199,12 +199,12 @@ typedef Vector3_< int > Vector3i;
 //////////////////////////////////////////////////
 
 /**
- * @brief isNull
- * compare value for null
+ * @brief fIsNull
+ * compare floating value for null
  * @param value
  * @return
  */
-static inline bool isNull(double value)
+static inline bool fIsNull(double value)
 {
 	return fabs(value) < epsilon;
 }
@@ -253,6 +253,9 @@ struct Quaternion{
 		w = r;
 		v = vector;
 	}
+	bool isNull() const{
+		return w == 1 && v.x() == 0 && v.y() == 0 & v.z() == 0;
+	}
 	inline double x() const{
 		return v.x();
 	}
@@ -278,7 +281,7 @@ struct Quaternion{
 	void normalize(){
 		double len = v.x() * v.x() + v.y() * v.y() +
 				v.z() * v.z() + w * w;
-		if(isNull(len) || isNull(len - 1.0))
+		if(fIsNull(len) || fIsNull(len - 1.0))
 			return;
 
 		len = 1.0/sqrt(len);
@@ -358,7 +361,7 @@ struct Quaternion{
 			return p0;
 		if(t >= 1)
 			return p1;
-		if(isNull(theta))
+		if(fIsNull(theta))
 			return p0;
 
 		double f1 = sin((1.0 - t) * theta);
