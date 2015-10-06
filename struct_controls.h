@@ -16,7 +16,7 @@ namespace sc{
 
 ///////////////////////////////////////////////
 
-class Quaternion;
+struct Quaternion;
 
 static inline Quaternion operator- (const Quaternion& q1, const Quaternion q2);
 static inline Quaternion operator+ (const Quaternion& q1, const Quaternion q2);
@@ -254,7 +254,7 @@ struct Quaternion{
 		v = vector;
 	}
 	bool isNull() const{
-		return w == 1 && v.x() == 0 && v.y() == 0 & v.z() == 0;
+		return w == 1. && v.x() == 0. && v.y() == 0. && v.z() == 0.;
 	}
 	inline double x() const{
 		return v.x();
