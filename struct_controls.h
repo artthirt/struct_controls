@@ -134,6 +134,9 @@ struct Vector3_{
 	inline Vector3_ inv() const{
 		return Vector3_(-x(), -y(), -z());
 	}
+	operator QString() const{
+		return QString("[%1; %2; %3]").arg(x()).arg(y()).arg(z());
+	}
 
 	static double dot(const Vector3_& v1, const Vector3_& v2){
 		double res = 0;
