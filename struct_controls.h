@@ -354,20 +354,27 @@ struct Quaternion{
 	}
 	static Quaternion slerp(const Quaternion& p0, const Quaternion& p1, double t){
 		Quaternion res;
-		double theta = Quaternion::dot(p0, p1);
-		theta = acos(theta);
+		double dot = Quaternion::dot(p0, p1);
 
 		if(t <= 0)
 			return p0;
 		if(t >= 1)
 			return p1;
-		if(fIsNull(theta))
+		if(fIsNull(dot))
 			return p0;
 
-		double f1 = sin((1.0 - t) * theta);
-		double f2 = sin(t * theta);
-		double f3 = 1.0 / sin(theta);
-		res = p0 * (f1/f3) + p1 * (f2 / f3);
+		double f1 = 1 - t;
+		double f2 = t;
+
+		if((1 - dot) > 0.0000001){
+			double theta = acos(dot);
+			double sinTheta = sin(theta);
+			if(sinTheta > 0.0000001){
+				f1 = sin((1 - t) * theta) / sinTheta;
+				f2 = sin(t * theta) / sinTheta;
+			}
+		}
+		res = p0 * f1 + p1 * f2;
 		return res.normalized();
 	}
 };
