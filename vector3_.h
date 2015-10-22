@@ -29,9 +29,12 @@ struct Vector3_{
 		FOREACH(i, count, data[i] = static_cast< T > (v.data[i]));
 	}
 
-	inline T x() const { return data[0]; }
-	inline T y() const { return data[1]; }
-	inline T z() const { return data[2]; }
+	inline const T& x() const { return data[0]; }
+	inline const T& y() const { return data[1]; }
+	inline const T& z() const { return data[2]; }
+	inline T& x() { return data[0]; }
+	inline T& y() { return data[1]; }
+	inline T& z() { return data[2]; }
 	inline void setX(T value) { data[0] = value; }
 	inline void setY(T value) { data[1] = value; }
 	inline void setZ(T value) { data[2] = value; }

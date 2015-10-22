@@ -79,6 +79,26 @@ struct StructGyroscope{
 
 };
 
+struct StructCompass{
+	StructCompass();
+	void read_from(QDataStream& stream);
+	void write_to(QDataStream& stream);
+
+	long long tick;
+	uchar mode;
+	vector3_::Vector3i data;
+};
+
+struct StructBarometer{
+	StructBarometer();
+	void write_to(QDataStream& stream);
+	void read_from(QDataStream& stream);
+
+	int data;
+	int temp;
+	long long tick;
+};
+
 /**
  * @brief The StructTelemetry struct
  * the structure for work with mpu6050 with raspberry pi 2 in the project "example_rpi2"
@@ -117,6 +137,8 @@ struct StructTelemetry
 	float height;
 
 	StructGyroscope gyroscope;
+	StructCompass compass;
+	StructBarometer barometer;
 
 };
 

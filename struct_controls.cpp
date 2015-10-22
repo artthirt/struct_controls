@@ -158,6 +158,52 @@ vector3_::Vector3d StructGyroscope::angular_speed(const vector3_::Vector3d& offs
 }
 
 ////////////////////////////////////////////////
+
+StructCompass::StructCompass()
+{
+	mode = tick = 0;
+}
+
+void StructCompass::read_from(QDataStream &stream)
+{
+	stream >> mode;
+	stream >> tick;
+	stream >> data.x();
+	stream >> data.y();
+	stream >> data.z();
+}
+
+void StructCompass::write_to(QDataStream &stream)
+{
+	stream << mode;
+	stream << tick;
+	stream << data.x();
+	stream << data.y();
+	stream << data.z();
+}
+
+////////////////////////////////////////////////
+
+StructBarometer::StructBarometer()
+{
+	tick = data = temp = 0;
+}
+
+void StructBarometer::write_to(QDataStream &stream)
+{
+	stream << tick;
+	stream << data;
+	stream << temp;
+}
+
+void StructBarometer::read_from(QDataStream &stream)
+{
+	stream >> tick;
+	stream >> data;
+	stream >> temp;
+}
+
+////////////////////////////////////////////////
 ////////////////////////////////////////////////
 
 /**
@@ -204,6 +250,8 @@ void StructTelemetry::write_to(QDataStream& stream)
 	stream << course;
 	stream << height;
 	gyroscope.write_to(stream);
+	compass.write_to(stream);
+	barometer.write_to(stream);
 }
 
 /**
@@ -224,4 +272,7 @@ void StructTelemetry::read_from(QDataStream& stream)
 	stream >> course;
 	stream >> height;
 	gyroscope.read_from(stream);
+	compass.read_from(stream);
+	barometer.read_from(stream);
 }
+
