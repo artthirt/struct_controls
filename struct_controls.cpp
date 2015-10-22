@@ -243,15 +243,16 @@ void StructTelemetry::write_to(QDataStream& stream)
 	stream.setFloatingPointPrecision(QDataStream::SinglePrecision);
 	stream.setVersion(QDataStream::Qt_4_8);
 
+	gyroscope.write_to(stream);
+	compass.write_to(stream);
+	barometer.write_to(stream);
+
 	stream << power_on;
 	FOREACH(i, cnt_engines, stream << power[i]);
 	stream << tangaj;
 	stream << bank;
 	stream << course;
 	stream << height;
-	gyroscope.write_to(stream);
-	compass.write_to(stream);
-	barometer.write_to(stream);
 }
 
 /**
@@ -265,14 +266,15 @@ void StructTelemetry::read_from(QDataStream& stream)
 	stream.setFloatingPointPrecision(QDataStream::SinglePrecision);
 	stream.setVersion(QDataStream::Qt_4_8);
 
+	gyroscope.read_from(stream);
+	compass.read_from(stream);
+	barometer.read_from(stream);
+
 	stream >> power_on;
 	FOREACH(i, cnt_engines, stream >> power[i]);
 	stream >> tangaj;
 	stream >> bank;
 	stream >> course;
 	stream >> height;
-	gyroscope.read_from(stream);
-	compass.read_from(stream);
-	barometer.read_from(stream);
 }
 
