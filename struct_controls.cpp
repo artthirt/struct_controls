@@ -230,6 +230,8 @@ StructTelemetry::StructTelemetry(const StructTelemetry& st)
 	course = st.course;
 	height = st.height;
 	gyroscope = st.gyroscope;
+	compass = st.compass;
+	barometer = st.barometer;
 }
 
 /**
