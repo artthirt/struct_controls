@@ -155,6 +155,21 @@ static inline Vector3_< T > operator* (const Vector3_< T >& v, T d){
 	return res;
 }
 
+/**
+ * @brief operator *
+ * multiple vector to single value
+ * @param v1
+ * @param v2
+ * @return
+ */
+template< typename T >
+static inline Vector3_< T > operator* (const Vector3_< T >& v1, const Vector3_< T >& v2){
+	Vector3_< T > res;
+	FOREACH(i, Vector3_< T >::count, res.data[i] = v1.data[i] * v2.data[i]);
+	return res;
+}
+
+
 typedef Vector3_< float > Vector3f;
 typedef Vector3_< double > Vector3d;
 typedef Vector3_< int > Vector3i;
