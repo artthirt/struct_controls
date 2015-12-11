@@ -3,11 +3,22 @@
 
 #include <vector>
 #include <math.h>
+
+#ifndef WITHOUT_QT
 #include <QDataStream>
 #include <QDebug>
+#else
+#include "iostream"
+#endif
 
 #include "common_.h"
 #include "vector3_.h"
+
+#ifdef WITHOUT_QT
+#include "datastream.h"
+#define QDataStream datastream
+#else
+#endif
 
 namespace sc{
 
@@ -31,6 +42,7 @@ struct StructControls
 {
 	StructControls();
 
+
 	void write_to(QDataStream& stream);
 	void read_from(QDataStream& stream);
 
@@ -50,6 +62,7 @@ struct StructGyroscope{
 
 	StructGyroscope();
 	StructGyroscope(const StructGyroscope& st);
+
 	void write_to(QDataStream& stream);
 	/**
 	 * @brief read_from
@@ -57,6 +70,7 @@ struct StructGyroscope{
 	 * @param stream
 	 */
 	void read_from(QDataStream& stream);
+
 	/**
 	 * @brief angular_speed
 	 * get angular speed from gyroscope mpu6050
@@ -81,16 +95,18 @@ struct StructGyroscope{
 
 struct StructCompass{
 	StructCompass();
+
 	void read_from(QDataStream& stream);
 	void write_to(QDataStream& stream);
 
 	long long tick;
-	uchar mode;
+	unsigned char mode;
 	vector3_::Vector3i data;
 };
 
 struct StructBarometer{
 	StructBarometer();
+
 	void write_to(QDataStream& stream);
 	void read_from(QDataStream& stream);
 

@@ -2,6 +2,7 @@
 #define COMMON_
 
 #include <math.h>
+#include <string>
 
 /// \brief FOREACH - cycle for the expression at
 /// the specified index and the number of repetitions

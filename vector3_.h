@@ -3,6 +3,11 @@
 
 #include "common_.h"
 
+#ifdef WITHOUT_QT
+#include <string>
+#include <sstream>
+#endif
+
 namespace vector3_{
 
 ////////////////////////////////////////////////////
@@ -94,10 +99,17 @@ struct Vector3_{
 	inline Vector3_ inv() const{
 		return Vector3_(-x(), -y(), -z());
 	}
+#ifndef WITHOUT_QT
 	operator QString() const{
 		return QString("[%1; %2; %3]").arg(x()).arg(y()).arg(z());
 	}
-
+#else
+	operator std::string() const{
+		std::stringstream stream;
+		stream << "[" << x() << "," << y() << "," << z() << "]";
+		return stream.str();
+	}
+#endif
 	static double dot(const Vector3_& v1, const Vector3_& v2){
 		double res = 0;
 		FOREACH(i, count, res += v1.data[i] * v2.data[i]);

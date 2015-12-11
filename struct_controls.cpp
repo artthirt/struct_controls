@@ -50,9 +50,11 @@ StructControls::StructControls()
 
 void StructControls::write_to(QDataStream &stream)
 {
+#ifndef WITHOUT_QT
 	stream.setByteOrder(QDataStream::BigEndian);
 	stream.setFloatingPointPrecision(QDataStream::SinglePrecision);
 	stream.setVersion(QDataStream::Qt_4_8);
+#endif
 
 	stream << power_on;
 	stream << throttle;
@@ -64,10 +66,11 @@ void StructControls::write_to(QDataStream &stream)
 
 void StructControls::read_from(QDataStream &stream)
 {
+#ifndef WITHOUT_QT
 	stream.setByteOrder(QDataStream::BigEndian);
 	stream.setFloatingPointPrecision(QDataStream::SinglePrecision);
 	stream.setVersion(QDataStream::Qt_4_8);
-
+#endif
 	stream >> power_on;
 	stream >> throttle;
 	stream >> tangaj;
@@ -241,9 +244,11 @@ StructTelemetry::StructTelemetry(const StructTelemetry& st)
  */
 void StructTelemetry::write_to(QDataStream& stream)
 {
+#ifndef WITHOUT_QT
 	stream.setByteOrder(QDataStream::BigEndian);
 	stream.setFloatingPointPrecision(QDataStream::SinglePrecision);
 	stream.setVersion(QDataStream::Qt_4_8);
+#endif
 
 	gyroscope.write_to(stream);
 	compass.write_to(stream);
@@ -264,10 +269,11 @@ void StructTelemetry::write_to(QDataStream& stream)
  */
 void StructTelemetry::read_from(QDataStream& stream)
 {
+#ifndef WITHOUT_QT
 	stream.setByteOrder(QDataStream::BigEndian);
 	stream.setFloatingPointPrecision(QDataStream::SinglePrecision);
 	stream.setVersion(QDataStream::Qt_4_8);
-
+#endif
 	gyroscope.read_from(stream);
 	compass.read_from(stream);
 	barometer.read_from(stream);
@@ -279,4 +285,3 @@ void StructTelemetry::read_from(QDataStream& stream)
 	stream >> course;
 	stream >> height;
 }
-
