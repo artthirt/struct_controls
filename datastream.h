@@ -1,12 +1,18 @@
 #ifndef DATASTREAM_H
 #define DATASTREAM_H
 
+#include <algorithm>
 #include <vector>
 #include <string>
 #include <assert.h>
 
 class basicstream{
 public:
+	enum byteorder{bigendian, littleendian};
+	basicstream(): m_byteorder(bigendian){
+
+	}
+
 	/**
 	 * @brief readRawData
 	 * @param data
@@ -27,6 +33,13 @@ public:
 	 */
 	inline int pos() const {return m_pos;}
 
+	void set_byteorder(byteorder order){
+		m_byteorder = order;
+	}
+	byteorder order() const{
+		return m_byteorder;
+	}
+
 protected:
 	/**
 	 * @brief inc
@@ -38,6 +51,8 @@ protected:
 	 * @param pos
 	 */
 	inline void set_pos(int pos){ m_pos = pos; }
+
+	byteorder m_byteorder;
 
 private:
 	int m_pos;
@@ -57,7 +72,15 @@ public:
 		if(pos() + sizetype > m_buffer->size()){
 			m_buffer->resize(pos() + sizetype);
 		}
-		std::copy((char*)&v, (char*)&v + sizetype, &(*m_buffer)[pos()]);
+		switch (m_byteorder) {
+			case bigendian:
+				std::reverse_copy((char*)&v, (char*)&v + sizetype, &(*m_buffer)[pos()]);
+				break;
+			case littleendian:
+			default:
+				std::copy((char*)&v, (char*)&v + sizetype, &(*m_buffer)[pos()]);
+				break;
+		}
 		inc(sizetype);
 	}
 	/**
@@ -84,7 +107,17 @@ public:
 		int sizetype = sizeof(v);
 		if(m_buffer.size() < pos() + sizetype)
 			return v;
-		std::copy((char*)&m_buffer[pos()], (char*)&m_buffer[pos()] + sizetype, (char*)&v);
+
+		switch (m_byteorder) {
+			case bigendian:
+				std::reverse_copy((char*)&m_buffer[pos()], (char*)&m_buffer[pos()] + sizetype, (char*)&v);
+				break;
+			case littleendian:
+			default:
+				std::copy((char*)&m_buffer[pos()], (char*)&m_buffer[pos()] + sizetype, (char*)&v);
+				break;
+		}
+
 		inc(sizetype);
 		return v;
 	}
@@ -105,6 +138,17 @@ public:
 	datastream(const std::vector< char > &source);
 	datastream(std::vector< char > *source);
 	~datastream();
+
+	void set_byteorder(basicstream::byteorder order){
+		if(m_stream){
+			m_stream->set_byteorder(order);
+		}
+	}
+	basicstream::byteorder order() const{
+		if(m_stream)
+			return m_stream->order();
+		return basicstream::bigendian;
+	}
 
 	/**
 	 * @brief operator >>
