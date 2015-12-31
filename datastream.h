@@ -69,9 +69,9 @@ public:
 	template< typename T >
 	void write(const T& v){
 		int sizetype = sizeof(v);
-		if(pos() + sizetype > m_buffer->size()){
-			m_buffer->resize(pos() + sizetype);
-		}
+
+		allocate(sizetype);
+
 		switch (m_byteorder) {
 			case bigendian:
 				std::reverse_copy((char*)&v, (char*)&v + sizetype, &(*m_buffer)[pos()]);
@@ -90,6 +90,8 @@ public:
 	 * @return
 	 */
 	virtual int writeRawData(char* data, int len);
+protected:
+	void allocate(size_t len);
 private:
 	std::vector< char > *m_buffer;
 };

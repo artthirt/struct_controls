@@ -10,12 +10,18 @@ inputstream::inputstream(std::vector<char> *source)
 
 int inputstream::writeRawData(char *data, int len)
 {
-	if(pos() + len < m_buffer->size())
-		m_buffer->resize(pos() + len);
+	allocate(len);
 
 	std::copy(data, data + len, &(*m_buffer)[pos()]);
 	inc(len);
 	return len;
+}
+
+void inputstream::allocate(size_t len)
+{
+	if(pos() + len > m_buffer->size()){
+		m_buffer->resize(pos() + len);
+	}
 }
 
 //////////////////////////////////////
