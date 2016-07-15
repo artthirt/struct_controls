@@ -22,6 +22,20 @@
 
 namespace sc{
 
+struct StructAngleCtrl{
+	StructAngleCtrl(){
+		pin = 1;
+		angle = 0;
+		freq = 500;
+		timework_ms = 10;
+	}
+
+	int pin;
+	int timework_ms;
+	float angle;
+	float freq;
+};
+
 struct StructServo{
 	StructServo();
 
